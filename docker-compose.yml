@@ -1,0 +1,97 @@
+version: "3.7"
+
+services:
+  api:
+    build:
+      context: ./app
+      dockerfile: ./Dockerfile
+    command: /bin/sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+    container_name: weather_api
+    hostname: api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - rabbitmq
+      - worker
+      - scheduler
+    volumes:
+      - ./app:/var/www/
+    env_file:
+      - ./.env
+    networks:
+      - backend
+    restart: always
+
+  db:
+    image: postgres:15.3-alpine
+    container_name: db_weather
+    hostname: db
+    ports:
+      - "54322:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+    networks:
+      - backend
+    restart: always
+
+  rabbitmq:
+    image: rabbitmq:3.8-management-alpine
+    container_name: rabbitmq
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/
+    env_file:
+      - ./.env
+    networks:
+      - backend
+    restart: always
+
+  worker:
+    build:
+      context: ./parser
+      dockerfile: ./Dockerfile
+    container_name: worker
+    hostname: worker
+    command: celery -A celery_app.celery_app worker --loglevel=info
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+      - rabbitmq
+    volumes:
+      - ./parser:/var/www/
+    networks:
+      - backend
+    restart: always
+
+  scheduler:
+    build:
+      context: ./parser
+      dockerfile: ./Dockerfile
+    container_name: scheduler
+    hostname: scheduler
+    command: celery -A celery_app.celery_app beat --loglevel=info
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+      - rabbitmq
+    volumes:
+      - ./parser:/var/www/
+    networks:
+      - backend
+    restart: always
+
+networks:
+  backend:
+    driver: "bridge"
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
