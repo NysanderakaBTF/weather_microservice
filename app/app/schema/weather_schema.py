@@ -9,3 +9,6 @@ class WeatherInfoSchema(BaseModel):
     pressure: float = Field(..., description="Pressure")
     wind_speed: float = Field(..., description="Wind speed")
     timestamp: datetime = Field(..., description="Timestamp of weather record")
+
+    class Config:
+        orm_mode = True

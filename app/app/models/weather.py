@@ -5,6 +5,8 @@ from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy import func
 
 
+# The Weather class represents weather data for a specific city, including temperature, pressure, wind
+# speed, and timestamp.
 class Weather(Base):
     __tablename__ = 'weather'
     id = Column(BigInteger, primary_key=True)

@@ -18,12 +18,20 @@ async_sesison_factory = sessionmaker(
 
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    """
+    The function `get_async_session` is an asynchronous generator that yields an `AsyncSession` object
+    (database session) obtained from an `async_sesison_factory`.
+    """
     async with async_sesison_factory() as session:
         yield session
 
 
 @asynccontextmanager
 async def provide_session():
+    """
+    The function `provide_session` is an asynchronous context manager that provides a session object and
+    handles committing or rolling back changes made within the session.
+    """
     async with async_sesison_factory() as session:
         try:
             yield session

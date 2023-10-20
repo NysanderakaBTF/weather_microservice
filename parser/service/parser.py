@@ -11,6 +11,11 @@ class ParserService:
 
     @staticmethod
     async def get_and_write_weather():
+        """
+        The function `get_and_write_weather` retrieves weather data for a list of cities from an API,
+        then collects current weather data for them and batch creates records for all collected data
+        writes the data to a database.
+        """
         async with provide_session() as session:
             res = await session.execute(select(City))
             cities = res.scalars().all()
