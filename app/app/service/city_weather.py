@@ -33,24 +33,19 @@ class CityWeatherService:
             res = await session.execute(select(exists()
                                         .where(func.lower(City.name) == func.lower(city_schema.name))))
             res = res.scalar()
-            print(res)
             if res:
                 raise HTTPException(
                     400, detail="Such city already in database")
 
         async with aiohttp.ClientSession() as session:
-            try:
-                resp = await session.get(
+            resp = await session.get(
                     f'https://api.openweathermap.org/data/2.5/weather?q={city_schema.name}&appid={config.OPENWEATHERMAP_KEY}')
-            except Exception as e:
-                print(e)
-                raise HTTPException(400, detail=e)
-            print(resp)
-            print(resp.status)
-            if resp.status != 200:
+
+            if resp.status == 404:
                 raise HTTPException(400, detail="No such city")
-            response = await resp.json()
-            print(response)
+            elif resp.status != 200:
+                raise HTTPException(503, detail="Openweather service error")
+
             async with provide_session() as db:
                 city = City(**city_schema.dict())
                 db.add(city)
@@ -105,7 +100,7 @@ class CityWeatherService:
         :param start: The `start` parameter is a `datetime` (without timezone) object representing the start
         of the period for which you want to retrieve weather data 
         :type start: datetime
-        :param end: The `end` parameter is the end datetime (without timezone for the period of weather data
+        :param end: The `end` parameter is the end datetime (without timezone) for the period of weather data
         you want to retrieve. It represents the latest datetime for which you want to get weather data
         :type end: datetime
         :return: The function `get_avg_and_all_data_for_period` returns a dictionary with two keys:

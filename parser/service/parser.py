@@ -28,8 +28,8 @@ class ParserService:
                 try:
                     resp = await session.get(f'https://api.openweathermap.org/data/2.5/weather?q={city.name}&appid={config.OPENWEATHERMAP_KEY}')
                     resp = await resp.json()
-                except Exception as e:
-                    raise e
+                except Exception:
+                    continue
                 weathers.append(Weather(
                     city_id=city.id,
                     temperature=resp['main']['temp'],
